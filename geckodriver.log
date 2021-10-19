@@ -1,0 +1,33 @@
+1634646190110	geckodriver	INFO	Listening on 127.0.0.1:58521
+1634646190484	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "--marionette" "--remote-debugging-port" "58522" "-foreground" "-no-remote" "-profile" "/var/folders/0y/kq2b86810pg5jpqvb9m8snj40000gn/T/rust_mozprofileuT6XMa"
+1634646191146	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /var/folders/0y/kq2b86810pg5jpqvb9m8snj40000gn/T/rust_mozprofileuT6XMa/search.json.mozlz4", (void 0)))
+console.error: BackgroundUpdate: 
+  _reasonsToNotScheduleUpdates: Failed to check for Maintenance Service Registry Key: [Exception... "Component returned failure code: 0x80004001 (NS_ERROR_NOT_IMPLEMENTED) [nsIUpdateProcessor.getServiceRegKeyExists]"  nsresult: "0x80004001 (NS_ERROR_NOT_IMPLEMENTED)"  location: "JS frame :: resource://gre/modules/BackgroundUpdate.jsm :: _reasonsToNotScheduleUpdates :: line 243"  data: no]
+DevTools listening on ws://localhost:58522/devtools/browser/f95aec0f-57d4-c848-8d14-7b4dc9ba8265
+1634646194205	Marionette	INFO	Listening on port 58529
+1634646194246	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource:///actors/FormValidationChild.jsm, line 177: TypeError: this._element is null
+1634646195300	geckodriver	INFO	Listening on 127.0.0.1:58605
+1634646195812	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "--marionette" "--remote-debugging-port" "58606" "-foreground" "-no-remote" "-profile" "/var/folders/0y/kq2b86810pg5jpqvb9m8snj40000gn/T/rust_mozprofileHW3Oh2"
+1634646196649	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /var/folders/0y/kq2b86810pg5jpqvb9m8snj40000gn/T/rust_mozprofileHW3Oh2/search.json.mozlz4", (void 0)))
+console.error: BackgroundUpdate: 
+  _reasonsToNotScheduleUpdates: Failed to check for Maintenance Service Registry Key: [Exception... "Component returned failure code: 0x80004001 (NS_ERROR_NOT_IMPLEMENTED) [nsIUpdateProcessor.getServiceRegKeyExists]"  nsresult: "0x80004001 (NS_ERROR_NOT_IMPLEMENTED)"  location: "JS frame :: resource://gre/modules/BackgroundUpdate.jsm :: _reasonsToNotScheduleUpdates :: line 243"  data: no]
+DevTools listening on ws://localhost:58606/devtools/browser/ed64b287-65cb-344e-96cb-cb5a203a8198
+1634646200045	Marionette	INFO	Listening on port 58611
+1634646200109	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource:///actors/FormValidationChild.jsm, line 177: TypeError: this._element is null
+JavaScript error: resource://gre/actors/AutoCompleteChild.jsm, line 125: Error: Invalid autocomplete selectedIndex
+1634646201660	Marionette	INFO	Stopped listening on port 58611
+!!! error running onStopped callback: TypeError: callback is not a function
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1634646202212	RemoteAgent	ERROR	unable to stop listener: [Exception... "Component returned failure code: 0x8000ffff (NS_ERROR_UNEXPECTED) [nsIWindowMediator.getEnumerator]"  nsresult: "0x8000ffff (NS_ERROR_UNEXPECTED)"  location: "JS frame :: chrome://remote/content/cdp/observers/TargetObserver.jsm :: stop :: line 64"  data: no] Stack trace: stop()@TargetObserver.jsm:64
+unwatchForTabs()@TargetList.jsm:70
+unwatchForTargets()@TargetList.jsm:37
+destructor()@TargetList.jsm:109
+close()@RemoteAgent.jsm:129
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
