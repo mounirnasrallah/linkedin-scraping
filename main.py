@@ -10,6 +10,10 @@ from getpass import getpass
 from selenium.webdriver.common.by import By
 import json
 from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException
+import time
+import random
+import csv
 
 LOGIN_URL="https://www.linkedin.com/login"
 SEARCH_URL="https://www.linkedin.com/search/results/people/?"
@@ -22,38 +26,78 @@ class LinkedInScraping:
         self.args = args
         self.page = 1
         self.depth = 0
+        self.listCompanies = []
+        self.outputFile = open(args.outputFile, 'w', newline='')
+        self.owner = args.owner
 
     def search_profiles_page(self, arguments):
         encoded_args = urlencode(arguments)
         self.driver.get(SEARCH_URL + encoded_args)
+        time.sleep(3)
 
-    def browse_results(self):
+    def browse_results(self, company):
         results_profiles = self.driver.find_elements(By.CLASS_NAME, "entity-result__item")
         for profile in results_profiles:
-            nameElement = profile.find_element(By.XPATH, ".//div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]")
-            name = nameElement.text
-            titleElement =  profile.find_element(By.XPATH,".//div[2]/div[1]/div[2]/div/div[1]")
-            title = titleElement.text
-            connectButtonDivElement =  profile.find_element(By.XPATH,".//div[3]")
-            connectButtonElement =  connectButtonDivElement.find_element(By.CLASS_NAME,"ember-view")
+            try:
+                nameElement = profile.find_element(By.XPATH, ".//div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]")
+                fullName = nameElement.text
+                name = fullName.split(" ", 1)
+                if len(name) < 2:
+                    name.append("")
 
-            if (self.depth < self.args.depth):
-                try:
-                    connectButtonElement.click()
-                except ElementClickInterceptedException:
-                    confirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='Send now']")
-                    confirmationButton.click()
-                    print(name, " , " ,title)
-                    self.depth += 1
+                titleElement =  profile.find_element(By.XPATH,".//div[2]/div[1]/div[2]/div/div[1]")
+                title = titleElement.text
+                titleElement =  profile.find_element(By.XPATH,".//div[2]/div[1]/div[2]/div/div[1]")
+                connectButtonDivElement = profile.find_element(By.XPATH,".//div[3]")
+                #print(connectButtonDivElement.get_attribute('innerHTML'))
+                connectButtonElement =  connectButtonDivElement.find_element(By.XPATH,".//button")
+                textButton = connectButtonElement.text
+
+                print(self.depth, self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)')
+
+                if textButton == "Connect":
+                    if (self.depth < self.args.depth):
+                        try:
+                            time.sleep(random.randrange(1,4))
+                            connectButtonElement.click()
+                            csvWriter = csv.writer(self.outputFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                            csvWriter.writerow([self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)'])
+                            self.depth += 1
+                        except ElementClickInterceptedException:
+                            confirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='Send now']")
+                            confirmationButton.click()
+                            #print("Click")
+                            csvWriter = csv.writer(self.outputFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                            csvWriter.writerow([self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)'])
+                            print(self.owner,',', name[0],',', name[1],',', company,',', title,',', '',',', 'Internet',',', 'Premier contact réalisé (LinkedIn)')
+                            self.depth = self.depth + 1
+                    else:
+                        print("Nothing to do (already added or message).")
+
+            except NoSuchElementException:
+                print("Nothing to do")
+                continue
 
 
     def search_browse_all_profiles_by_company(self):
-        for company in self.listCompanies:
-            while (self.depth < self.args.depth):
-                arguments = {'title': self.args.title, 'company': company, 'network': json.dumps(self.args.network), 'page': self.page}
-                self.search_profiles_page(arguments)
-                self.browse_results()
-                self.page += 1
+        if self.listCompanies is None:
+            while ((self.depth < self.args.depth) and (self.page < (self.args.depth / 2)) ):
+                arguments = {'title': self.args.title, 'network': json.dumps(self.args.network), 'page': self.page}
+                if self.location is not None:
+                    arguments['geoUrn'] = json.dumps(self.location)
+                    self.search_profiles_page(arguments)
+                    self.browse_results("?")
+                    self.page += 1
+        else:
+            for company in self.listCompanies:
+                while ((self.depth < self.args.depth) and (self.page < (self.args.depth / 2)) ):
+                    arguments = {'title': self.args.title, 'company': company, 'network': json.dumps(self.args.network), 'page': self.page}
+                    if self.location is not None:
+                        arguments['geoUrn'] = json.dumps(self.location)
+
+                    self.search_profiles_page(arguments)
+                    self.browse_results(company)
+                    self.page += 1
             self.page = 1
             self.depth = 0
 
@@ -63,19 +107,29 @@ class LinkedInScraping:
         print('Enter your email:')
         mail = input()
         password = getpass()
-        self.driver.find_element(By.XPATH,'//*[@id="username"]').send_keys(mail)
-        self.driver.find_element(By.XPATH,'//*[@id="password"]').send_keys(password)
-        self.driver.find_element(By.XPATH,'/html/body/div/main/div[3]/div[1]/form/div[3]/button').click()
+        self.driver.find_element(By.ID,'username').send_keys(mail)
+        self.driver.find_element(By.ID,'password').send_keys(password)
+        self.driver.find_element(By.XPATH,".//button[@aria-label='Sign in']").click()
+        print("Ready to continue?")
+        _ = input()
 
     def setup(self):
         geckodriver_autoinstaller.install()
         self.driver = webdriver.Firefox()
         self.login()
         if self.args.companyFile is not None:
-            self.listCompanies = xlrd.open_workbook(self.args.companyFile)
+            #self.listCompanies = xlrd.open_workbook(self.args.companyFile)
+            with open(self.args.companyFile, "r") as csvCompanyFile:
+                csvReader = csv.reader(csvCompanyFile, delimiter=',')
+                for line in csvReader:
+                    self.listCompanies.append(line[0])
         else:
-            self.listCompanies = [self.args.company]
-
+            self.listCompanies = self.args.company
+        if self.args.location is not None:
+            if self.args.location == "France":
+                self.location = ["105015875"]
+        else:
+            self.location = None
 
     def run(self):
         self.setup()
@@ -98,13 +152,16 @@ def main():
     group_company = parser.add_mutually_exclusive_group()
     group_company.add_argument('--company', metavar='COMPANY_NAME', type=str, nargs='?',
                     help='Current company')
-    group_company.add_argument('--companyFile', metavar='COMPANY_FILE', nargs='?', type=argparse.FileType('r'), help="File to read for companies name")
+    group_company.add_argument('--companyFile', metavar='COMPANY_FILE', nargs='?', type=str, help="File to read for companies name")
 
     parser.add_argument('--firstName', metavar='FIRST_NAME', type=str, nargs='?',
                         help='First Name')
 
     parser.add_argument('--lastName', metavar='LAST_NAME', type=str, nargs='?',
                     help='Last Name')
+
+    parser.add_argument('--location', metavar='LOCATION', type=str, nargs='?',
+                        help='Location')
 
     group_title = parser.add_mutually_exclusive_group()
     group_title.add_argument('--title', metavar='TITLE', type=str, nargs='?',
@@ -123,6 +180,10 @@ def main():
     group_message.add_argument('--message', metavar='MESSAGE', type=str, nargs='?',
                     help='Message to send')
     group_message.add_argument('--messageFile', metavar='MESSAGE_FILE', nargs='?', type=argparse.FileType('r'), help="File for the message")
+
+    parser.add_argument('--owner', metavar='OWNER', nargs='?', type=str, help="Account owner")
+
+    parser.add_argument('--outputFile', metavar='OUTPUT_FILE', nargs='?', type=str, help="File to write")
 
     args = parser.parse_args()
 
