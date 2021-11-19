@@ -49,44 +49,63 @@ class LinkedInScraping:
                 title = titleElement.text
                 titleElement =  profile.find_element(By.XPATH,".//div[2]/div[1]/div[2]/div/div[1]")
                 connectButtonDivElement = profile.find_element(By.XPATH,".//div[3]")
+                connectButtonElement = profile.find_element(By.XPATH,".//button[span[text()='Connect']]")
                 #print(connectButtonDivElement.get_attribute('innerHTML'))
-                connectButtonElement =  connectButtonDivElement.find_element(By.XPATH,".//button")
-                textButton = connectButtonElement.text
+                #connectButtonElement =  connectButtonDivElement.find_element(By.XPATH,".//button")
+                #textButton = connectButtonElement.text
 
                 print(self.depth, self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)')
 
-                if textButton == "Connect":
-                    if (self.depth < self.args.depth):
-                        try:
-                            time.sleep(random.randrange(1,4))
-                            connectButtonElement.click()
-                            csvWriter = csv.writer(self.outputFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                            csvWriter.writerow([self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)'])
-                            self.depth += 1
-                        except ElementClickInterceptedException:
-                            confirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='Send now']")
-                            confirmationButton.click()
-                            #print("Click")
-                            csvWriter = csv.writer(self.outputFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                            csvWriter.writerow([self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)'])
-                            print(self.owner,',', name[0],',', name[1],',', company,',', title,',', '',',', 'Internet',',', 'Premier contact réalisé (LinkedIn)')
-                            self.depth = self.depth + 1
-                    else:
+                print(" ------------------------- ")
+                print(profile.get_attribute('innerHTML'))
+                print(" ------------------------- ")
+
+                #if textButton == "Connect":
+                if (self.depth < self.args.depth):
+                    added = False
+                    try:
+                        time.sleep(random.randrange(1,4))
+                        connectButtonElement.click()
+                    except ElementClickInterceptedException:
+                        print ("Connect button not clickable")
+                    except NoSuchElementException:
                         print("Nothing to do (already added or message).")
+
+                    try:
+                        confirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='Send now']")
+                        confirmationButton.click()
+                        self.depth += 1
+                        added = True
+                    except NoSuchElementException:
+                        try:
+                            print("No simple confirmation")
+                            doubleConfirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='No']")
+                            doubleConfirmationButton.click()
+                            self.depth += 1
+                            added = True
+                        except NoSuchElementException:
+                            print("No double confirmation")
+
+                    if added is True:
+                        csvWriter = csv.writer(self.outputFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                        csvWriter.writerow([self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)'])
+                        print(self.owner,',', name[0],',', name[1],',', company,',', title,',', '',',', 'Internet',',', 'Premier contact réalisé (LinkedIn)')
+                time.sleep(1)
 
             except NoSuchElementException:
                 print("Nothing to do")
-                continue
+
 
 
     def search_browse_all_profiles_by_company(self):
         if self.listCompanies is None:
-            while ((self.depth < self.args.depth) and (self.page < (self.args.depth / 2)) ):
+            while (self.depth < self.args.depth):
                 arguments = {'title': self.args.title, 'network': json.dumps(self.args.network), 'page': self.page}
                 if self.location is not None:
                     arguments['geoUrn'] = json.dumps(self.location)
                     self.search_profiles_page(arguments)
                     self.browse_results("?")
+                    time.sleep(5)
                     self.page += 1
         else:
             for company in self.listCompanies:
