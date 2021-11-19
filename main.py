@@ -56,9 +56,9 @@ class LinkedInScraping:
 
                 print(self.depth, self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)')
 
-                print(" ------------------------- ")
-                print(profile.get_attribute('innerHTML'))
-                print(" ------------------------- ")
+                #print(" ------------------------- ")
+                #print(profile.get_attribute('innerHTML'))
+                #print(" ------------------------- ")
 
                 #if textButton == "Connect":
                 if (self.depth < self.args.depth):
@@ -74,19 +74,18 @@ class LinkedInScraping:
                     try:
                         confirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='Send now']")
                         confirmationButton.click()
-                        self.depth += 1
                         added = True
                     except NoSuchElementException:
                         try:
                             print("No simple confirmation")
                             doubleConfirmationButton = self.driver.find_element(By.XPATH,".//button[@aria-label='No']")
                             doubleConfirmationButton.click()
-                            self.depth += 1
                             added = True
                         except NoSuchElementException:
                             print("No double confirmation")
 
                     if added is True:
+                        self.depth += 1
                         csvWriter = csv.writer(self.outputFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                         csvWriter.writerow([self.owner, name[0], name[1], company, title, ' ', 'Internet', 'Premier contact réalisé (LinkedIn)'])
                         print(self.owner,',', name[0],',', name[1],',', company,',', title,',', '',',', 'Internet',',', 'Premier contact réalisé (LinkedIn)')
@@ -109,7 +108,7 @@ class LinkedInScraping:
                     self.page += 1
         else:
             for company in self.listCompanies:
-                while ((self.depth < self.args.depth) and (self.page < (self.args.depth / 2)) ):
+                while (self.depth < self.args.depth):
                     arguments = {'title': self.args.title, 'company': company, 'network': json.dumps(self.args.network), 'page': self.page}
                     if self.location is not None:
                         arguments['geoUrn'] = json.dumps(self.location)
